@@ -67,6 +67,46 @@ npm run dev
 
 ## 构建与部署
 
+### Docker 一键部署
+
+已安装 Docker 和 Docker Compose 时，在项目目录执行：
+
+```bash
+docker compose up -d --build
+```
+
+打开 <http://localhost:8080>。如需更换宿主机端口，例如使用 `3000`：
+
+```bash
+HSB_CHECK_PORT=3000 docker compose up -d --build
+```
+
+停止并移除容器：
+
+```bash
+docker compose down
+```
+
+也可以直接运行 GitHub Actions 发布到 GHCR 的镜像；将 `<owner>` 替换为仓库所有者的小写 GitHub 用户名或组织名：
+
+```bash
+docker run -d --name hsb-check --restart unless-stopped -p 8080:80 ghcr.io/<owner>/hsbcheck:latest
+```
+
+应用在容器内由 Nginx 提供服务。正式公网部署时，请在容器前配置 HTTPS 反向代理；结单解析需要浏览器的安全上下文（HTTPS 或 localhost）。
+
+### GitHub Actions 自动发布
+
+工作流 [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) 会在 pull request 中验证 Docker 构建，并在推送到 `main` 或推送 `v*` 标签时构建 `linux/amd64`、`linux/arm64` 镜像并发布到：
+
+```text
+ghcr.io/<仓库所有者小写>/<仓库名小写>:latest
+```
+
+发布使用仓库自带的 `GITHUB_TOKEN`，无需额外配置密钥。若 GHCR 包首次发布后不是公开可见，可在 GitHub 的 **Packages → Package settings → Change visibility** 中将其设为 Public；私有镜像部署前需要先执行 `docker login ghcr.io`。
+
+### 本地构建
+
 ```bash
 npm test
 npm run build

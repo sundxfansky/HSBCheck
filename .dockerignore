@@ -1,0 +1,14 @@
+.git
+.github
+.DS_Store
+.env*
+.wrangler
+.dev.vars*
+dist
+node_modules
+npm-debug.log*
+*.pdf
+*.csv
+*.xlsx
+*.pem
+*.key

@@ -1,0 +1,8 @@
+services:
+  hsb-check:
+    build:
+      context: .
+    container_name: hsb-check
+    restart: unless-stopped
+    ports:
+      - "${HSB_CHECK_PORT:-8080}:80"
