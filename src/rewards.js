@@ -142,3 +142,41 @@ export function calculateRewards(transactions, { today = hongKongToday(), hkdCny
     base: { cny: cnyBase, hkd: hkdBase, hkdConvertedCny, totalCny: baseTotal, cnyGross, cnyRefunds, hkdGross, hkdRefunds }, world, pulse,
     totalCny: baseTotal === null ? null : baseTotal + world.cashback + pulse.cashback };
 }
+
+// 页面统计覆盖全部导入记录；每年调用原有规则，让年度 / 半年度额度独立重置。
+// 统计截止日取 PDF 内的最后入账日，不使用浏览器当前年份筛掉历史结单。
+export function calculateImportedRewards(transactions, { hkdCnyRate = null, overrides = {} } = {}) {
+  const byYear = new Map();
+  for (const transaction of transactions) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(transaction.day || '')) continue;
+    const year = transaction.day.slice(0, 4);
+    if (!byYear.has(year)) byYear.set(year, []);
+    byYear.get(year).push(transaction);
+  }
+  const years = [...byYear].sort(([left], [right]) => left.localeCompare(right)).map(([year, records]) => {
+    const days = records.map(transaction => transaction.day).sort();
+    const rewards = calculateRewards(records, { today: days.at(-1), hkdCnyRate, overrides });
+    return { year, from: days[0], to: days.at(-1), rewards, halves: new Set(days.map(day => day.slice(5, 7) < '07' ? 0 : 1)) };
+  });
+  const sum = pick => years.reduce((total, year) => total + pick(year.rewards), 0n);
+  const sumCount = key => years.reduce((total, year) => total + year.rewards[key], 0);
+  const baseTotal = years.some(year => year.rewards.base.totalCny === null) ? null : sum(rewards => rewards.base.totalCny);
+  const hkdConvertedCny = years.some(year => year.rewards.base.hkdConvertedCny === null) ? null : sum(rewards => rewards.base.hkdConvertedCny);
+  const world = {
+    cashback: sum(rewards => rewards.world.cashback),
+    clawback: sum(rewards => rewards.world.clawback),
+    periods: years.map(year => ({ ...year.rewards.world, label: `${year.year} 年`, year: year.year })),
+  };
+  const pulse = {
+    cashback: sum(rewards => rewards.pulse.cashback),
+    clawback: sum(rewards => rewards.pulse.clawback),
+    periods: years.flatMap(year => year.rewards.pulse.periods.filter((_, index) => year.halves.has(index)).map(period => ({ ...period, label: `${year.year} 年${period.label}` }))),
+  };
+  return {
+    range: years.length ? { from: years[0].from, to: years.at(-1).to } : null,
+    years, world, pulse,
+    base: { cny: sum(rewards => rewards.base.cny), hkd: sum(rewards => rewards.base.hkd), hkdConvertedCny, totalCny: baseTotal },
+    totalCny: baseTotal === null ? null : baseTotal + world.cashback + pulse.cashback,
+    pending: sumCount('pending'), uncertainRefunds: sumCount('uncertainRefunds'), otherCurrency: sumCount('otherCurrency'), included: sumCount('included'),
+  };
+}

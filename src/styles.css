@@ -13,3 +13,47 @@
 @media(max-width:780px){.rewards-card{padding:23px 22px 17px}.reward-name{min-height:50px}.reward-value>strong{font-size:26px}.reward-description{font-size:9px}.reward-cell{padding:0 16px}.rewards-scope,.reward-review{font-size:10px}}
 @media(max-width:580px){.rewards-card{padding:20px 17px 17px}.rewards-heading{align-items:flex-start;margin-bottom:20px;gap:9px}.rewards-heading h2{font-size:16px;gap:6px}.rewards-heading>div>p{font-size:9px;max-width:180px}.rewards-total>span{font-size:8px}.rewards-total>strong{font-size:20px}.rewards-total small{font-size:8px}.reward-columns{grid-template-columns:1fr}.reward-cell{padding:18px 0;border:0;border-top:1px solid var(--line)}.reward-cell:first-child{padding-top:0;border-top:0}.reward-cell:last-child{padding-bottom:0}.reward-name{min-height:0;flex-wrap:nowrap;align-items:center}.reward-name h3{font-size:13px}.reward-name>span{font-size:9px}.reward-value{margin-top:10px}.reward-value>strong{font-size:28px}.reward-value small{font-size:10px}.reward-description{min-height:0;font-size:10px;margin-top:7px}.reward-allowance{margin-top:17px}.allowance-label,.allowance-amount{font-size:10px}.reward-progress{height:6px}.reward-allowance>p,.refund-clawback{font-size:9px}.base-breakdown{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:13px;font-size:9px}.base-breakdown>div{gap:8px;line-height:1.9}.base-breakdown>p{font-size:9px;width:100%;margin-top:0}.reward-rate-row{margin-top:20px;align-items:flex-start;flex-wrap:nowrap}.reward-rate-row>div{gap:5px 10px;font-size:9px}.reward-rate-row button span{display:none}.reward-rate-row button{padding:5px}.rewards-scope,.reward-review{font-size:9px}.merchant-cell .payment-badge{font-size:8px}.rewards-total{max-width:45%;white-space:normal;overflow-wrap:anywhere}.rewards-total>strong{white-space:nowrap}.reward-adjustment{padding:13px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition:none!important}}
+.card-summary { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.subsection-heading h3 { font-size: 13px; font-weight: 500; }
+.subsection-heading p { font-size: 10px; color: #78828b; margin-top: 7px; line-height: 1.8; }
+.card-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 12px; margin-top: 14px; }
+.card-summary-item { border: 1px solid var(--line); padding: 16px; min-width: 0; background: #fafbfc; }
+.card-summary-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; }
+.card-summary-title strong { font-weight: 500; }
+.card-summary-title > span { color: #75808a; font-size: 10px; white-space: nowrap; }
+.card-summary-item dl { margin: 13px 0 0; font-variant-numeric: tabular-nums; }
+.card-summary-item dl > div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 12px; }
+.card-summary-item dt { color: #727e87; }
+.card-summary-item dd { margin: 0; overflow-wrap: anywhere; text-align: right; }
+.card-holder { margin-top: 9px; color: #7f8a93; font-size: 9px; overflow-wrap: anywhere; }
+.page-size-selector { display: flex; align-items: center; gap: 7px; margin-left: auto; font-size: 10px; font-weight: 400; color: #67717a; white-space: nowrap; }
+.page-size-selector select { min-height: 30px; border: 1px solid #dfe2e5; background: #fff; color: #4e5962; padding: 3px 6px; font: inherit; }
+.table-scroll { position: relative; min-width: 0; max-width: 100%; }
+.transactions-panel table { min-width: 610px; table-layout: auto; white-space: nowrap; }
+.transactions-panel th:first-child { width: 145px; }
+.date-cell > strong { display: block; font-size: 11px; font-weight: 500; white-space: nowrap; }
+.date-cell > span { white-space: nowrap; }
+.description-summary { margin-top: 22px; background: #fff; border: 1px solid var(--line); }
+.description-summary .transaction-heading { align-items: flex-start; }
+.description-summary .transaction-heading p { line-height: 1.8; }
+.description-card { padding: 0 25px 20px; }
+.description-card h3 { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-size: 13px; font-weight: 500; padding: 16px 0 12px; border-top: 1px solid var(--line); }
+.description-card h3 > span { font-size: 10px; font-weight: 400; color: #78848e; }
+.summary-table { min-width: 550px; table-layout: auto; }
+.summary-table th, .summary-table td { width: auto; height: auto; padding: 12px 10px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.summary-table th:first-child, .summary-table td:first-child { width: 40%; text-align: left; padding-left: 12px; white-space: normal; overflow-wrap: anywhere; }
+.summary-table tfoot { background: #fafbfc; border-top: 1px solid var(--line); }
+.summary-table tfoot th, .summary-table tfoot td { font-weight: 500; }
+.summary-empty { font-size: 12px; line-height: 1.8; color: #7b8791; padding: 0 25px 15px; }
+.summary-footnote { border-top: 1px solid var(--line); padding: 14px 25px; color: #7c8790; font-size: 10px; line-height: 1.9; }
+@media (max-width: 580px) {
+  .table-footer { flex-wrap: wrap; gap: 12px; }
+  .table-footer > span { flex-basis: 100%; }
+  .page-size-selector { margin-left: 0; }
+  .pagination { margin-left: auto; }
+  .description-card { padding: 0 17px 16px; }
+  .description-summary .transaction-heading { gap: 10px; }
+  .description-summary .currency-selector { flex-shrink: 0; }
+  .summary-footnote, .summary-empty { padding-left: 17px; padding-right: 17px; }
+  .card-summary-item { padding: 14px; }
+}

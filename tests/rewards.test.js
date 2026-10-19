@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ANNUAL_CAP, PULSE_HALF_YEAR_CAP, calculateRewards, groupRewardCards, hongKongToday, moneyUnits, paymentChannel, rewardMoney } from '../src/rewards.js';
+import { ANNUAL_CAP, PULSE_HALF_YEAR_CAP, calculateImportedRewards, calculateRewards, groupRewardCards, hongKongToday, moneyUnits, paymentChannel, rewardMoney } from '../src/rewards.js';
 import { fetchHkdCnyRate, RATE_URL } from '../src/exchange-rate.js';
 import { mergeStatements } from '../src/statements.js';
 
@@ -14,6 +14,54 @@ test('ordinary CNY consumption returns 0.4% + 2%, without Pulse', () => {
   assert.equal(rewardMoney(rewards.world.cashback), '2.00');
   assert.equal(rewards.pulse.cashback, 0n);
   assert.equal(rewardMoney(rewards.totalCny), '2.40');
+});
+test('imported PDF dates include historical years and independently cap each year and half', () => {
+  const records = [
+    transaction({ id: '2024-first', day: '2024-06-30', amount: '120000.00', notes: ['APPLE PAY'] }),
+    transaction({ id: '2024-second', day: '2024-07-01', amount: '120000.00', notes: ['APPLE PAY'] }),
+    transaction({ id: '2025-first', day: '2025-06-30', amount: '120000.00', notes: ['APPLE PAY'] }),
+    transaction({ id: '2025-second', day: '2025-07-01', amount: '120000.00', notes: ['APPLE PAY'] }),
+  ];
+  const result = calculateImportedRewards(records, { hkdCnyRate: .85 });
+  assert.deepEqual(result.range, { from: '2024-06-30', to: '2025-07-01' });
+  assert.equal(result.included, 4);
+  assert.equal(rewardMoney(result.world.cashback), '4000.00');
+  assert.equal(rewardMoney(result.pulse.cashback), '6400.00');
+  assert.equal(rewardMoney(result.base.totalCny), '1920.00');
+  assert.equal(rewardMoney(result.totalCny), '12320.00');
+  assert.deepEqual(result.world.periods.map(pool => pool.used), [ANNUAL_CAP, ANNUAL_CAP]);
+  assert.deepEqual(result.pulse.periods.map(pool => pool.used), Array(4).fill(PULSE_HALF_YEAR_CAP));
+});
+test('PDF coverage does not invent January or current-year dates and handles missing FX', () => {
+  const records = [transaction({ day: '2023-03-14', currency: 'HKD' })];
+  const result = calculateImportedRewards(records);
+  assert.deepEqual(result.range, { from: '2023-03-14', to: '2023-03-14' });
+  assert.equal(result.totalCny, null);
+  assert.deepEqual(result.pulse.periods.map(pool => pool.label), ['2023 年上半年']);
+  assert.equal(calculateImportedRewards([]).range, null);
+  assert.equal(calculateImportedRewards([]).totalCny, 0n);
+});
+test('historical imported cashback still respects card ownership and payment corrections', () => {
+  const records = [
+    transaction({ id: 'main', day: '2022-12-31', rewardCardId: 'main', cardType: 'primary' }),
+    transaction({ id: 'sup', day: '2022-12-31', rewardCardId: 'sup', cardType: 'supplementary' }),
+  ];
+  const [main, sup] = groupRewardCards(records).map(card => calculateImportedRewards(card.records, { overrides: { sup: { channel: 'applePay' } } }));
+  assert.equal(rewardMoney(main.totalCny), '2.40');
+  assert.equal(rewardMoney(sup.totalCny), '4.40');
+});
+test('historical cross-half refunds claw back once without restoring any period allowance', () => {
+  const records = [
+    transaction({ id: 'purchase', day: '2022-06-30', amount: '1000.00', notes: ['APPLE PAY'] }),
+    transaction({ id: 'refund', day: '2022-07-01', amount: '200.00', direction: 'credit', category: 'credit', notes: ['APPLE PAY'] }),
+    transaction({ id: 'next-year', day: '2023-01-01', amount: '1000.00', notes: ['APPLE PAY'] }),
+  ];
+  const result = calculateImportedRewards(records);
+  assert.equal(rewardMoney(result.totalCny), '79.20');
+  assert.equal(rewardMoney(result.world.clawback), '4.00');
+  assert.equal(rewardMoney(result.pulse.clawback), '4.00');
+  assert.deepEqual(result.pulse.periods.map(pool => rewardMoney(pool.used)), ['1000.00', '0.00', '1000.00']);
+  assert.deepEqual(result.world.periods.map(pool => rewardMoney(pool.used)), ['1000.00', '1000.00']);
 });
 test('Apple Pay continuation takes priority over an Alipay merchant description', () => {
   const item = transaction({ notes: ['APPLE PAY-MOBILE:1234'] });

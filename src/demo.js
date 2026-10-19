@@ -19,11 +19,29 @@ const entries = [
   ['2026-10-13', '示例 · UNIONPAY QR 内地消费', '3000.00', 'Debit', 'CNY', 'BOOK'],
   ['2026-10-12', '示例 · APPLE PAY 退款', '500.00', 'Credit', 'CNY', 'BOOK'],
   ['2026-10-11', '示例 · 信用卡还款', '5000.00', 'Credit', 'CNY', 'BOOK'],
+  ['2026-10-10', 'BLUE BOTTLE COFFEE', '48.00', 'Debit', 'HKD', 'BOOK'],
+  ['2026-10-09', 'BLUE BOTTLE COFFEE', '10.00', 'Credit', 'HKD', 'BOOK'],
+  ['2026-10-15', 'BLUE BOTTLE COFFEE', '52.00', 'Debit', 'HKD', 'BOOK', 'supplementary-1'],
+  ['2026-10-12', 'BLUE BOTTLE COFFEE', '46.00', 'Debit', 'HKD', 'BOOK', 'supplementary-1'],
+  ['2026-10-11', '示例 · ALIPAY 内地消费', '600.00', 'Debit', 'CNY', 'BOOK', 'supplementary-1'],
+  ['2026-10-08', '示例 · ALIPAY 内地消费', '100.00', 'Credit', 'CNY', 'BOOK', 'supplementary-1'],
+  ['2026-10-15', '示例 · UNIONPAY QR 内地消费', '800.00', 'Debit', 'CNY', 'BOOK', 'supplementary-2'],
+  ['2026-10-14', '示例 · 信用卡还款', '200.00', 'Credit', 'CNY', 'BOOK', 'supplementary-2'],
+  ['2025-12-30', '示例 · ALIPAY 内地消费', '300.00', 'Debit', 'CNY', 'BOOK'],
 ];
 
-export const demoTransactions = entries.map(([day, description, amount, direction, currency], index) => ({
+const demoCards = {
+  primary: { id: 'demo-primary', type: 'primary', last4: '1001' },
+  'supplementary-1': { id: 'demo-supplementary-1', type: 'supplementary', last4: '2001' },
+  'supplementary-2': { id: 'demo-supplementary-2', type: 'supplementary', last4: '2002' },
+};
+
+export const demoTransactions = entries.map(([day, description, amount, direction, currency, , cardKey = 'primary'], index) => ({
   id: `DEMO-${index}`, date: `${day}T00:00:00+08:00`, day, transactionDay: day,
   description, amount, direction: direction === 'Credit' ? 'credit' : 'debit', currency,
   category: direction === 'Credit' ? (description.includes('还款') ? 'repayment' : 'credit') : 'spend',
   status: 'booked', bankStatus: '虚构示例', reference: `SAMPLE-${1000 + index}`,
+  rewardCardId: demoCards[cardKey].id, cardType: demoCards[cardKey].type, last4: demoCards[cardKey].last4,
+  account: `${currency} ···· ${demoCards[cardKey].last4}${cardKey === 'primary' ? '（主卡）' : '（副卡）'}`,
+  statementDate: day.startsWith('2025') ? '2026-01-14' : '2026-10-16',
 }));
