@@ -95,9 +95,19 @@ docker run -d --name hsb-check --restart unless-stopped -p 8080:80 ghcr.io/<owne
 
 应用在容器内由 Nginx 提供服务。正式公网部署时，请在容器前配置 HTTPS 反向代理；结单解析需要浏览器的安全上下文（HTTPS 或 localhost）。
 
+更新镜像后需要重新创建容器；仅重启旧容器不会使用新镜像。如果使用上面的 `docker run` 部署方式，可执行（`<owner>` 同样替换为仓库所有者）：
+
+```bash
+docker pull ghcr.io/<owner>/hsbcheck:latest
+docker stop hsb-check && docker rm hsb-check
+docker run -d --name hsb-check --restart unless-stopped -p 8080:80 ghcr.io/<owner>/hsbcheck:latest
+```
+
+从源码使用 Compose 部署时，更新代码后执行 `docker compose up -d --build`。如果旧部署曾出现 PDF worker 加载失败，更新后请强制刷新浏览器；配置了 CDN 或反向代理缓存时，也需清理 `/assets/*.mjs` 的旧缓存。worker 应返回 `Content-Type: application/javascript`。
+
 ### GitHub Actions 自动发布
 
-工作流 [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) 会在 pull request 中验证 Docker 构建，并在推送到 `main` 或推送 `v*` 标签时构建 `linux/amd64`、`linux/arm64` 镜像并发布到：
+工作流 [`.github/workflows/docker-publish.yml`](.github/workflows/docker-publish.yml) 会先启动容器，检查 PDF worker 的 JavaScript MIME 类型、缺失资源的 404 响应和 SPA 路由，再在推送到 `main` 或推送 `v*` 标签时构建 `linux/amd64`、`linux/arm64` 镜像并发布到（pull request 仅验证，不发布）：
 
 ```text
 ghcr.io/<仓库所有者小写>/<仓库名小写>:latest
